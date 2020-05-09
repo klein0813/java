@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project name="HRRS" default="package" basedir=".">
+    <property file="${basedir}/build.properties" />
+    <property name="src.home" value="${basedir}/src" />
+    <property name="test.home" value="${basedir}/test" />
+    <property name="config.home" value="${basedir}/config" />
+    <property name="dist.home" value="${basedir}/dist" />
+    <property name="jboss.home" value="${dist.home}/programs/jboss/server/default" />
+
+    <target name="init">
+        <tstamp />
+        <property name="compile.debug" value="true" />
+        <property name="compile.deprecation" value="true" />
+        <property name="compile.optimize" value="true" />
+        <property name="compile.version" value="${jdk.version}" />
+
+        <path id="compile.classpath">
+            <fileset dir="${basedir}/WebContent/WEB-INF/lib">
+                <include name="*.jar" />
+            </fileset>
+        </path>
+    </target>
+
+    <target name="clean" depends="init" description="Delete old build and dist directories">
+        <delete dir="${dist.home}" />
+    </target>
+
+    <target name="prepare" depends="clean">
+        <mkdir dir="${dist.home}/programs/jboss/server/default/deploy" />
+        <mkdir dir="${dist.home}/config" />
+        <mkdir dir="${dist.home}/war" />
+
+        <copy todir="${dist.home}/war">
+            <fileset dir="${basedir}/WebContent">
+                <exclude name="WEB-INF/lib/*.jar" />
+            </fileset>
+        </copy>
+
+        <!-- Copy config files into WEB-INF -->
+        <mkdir dir="${dist.home}/war/WEB-INF/config" />
+        <copy todir="${dist.home}/war/WEB-INF/config">
+            <fileset dir="${config.home}">
+                <include name="context/**" />
+                <include name="datasource.properties" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- Convert encoding for message resource files -->
+    <target name="resources-native" description="Convert encoding for all *.properties files">
+        <mkdir dir="${dist.home}/war/WEB-INF/config/resource" />
+        <native2ascii encoding="UTF-8" src="${config.home}/resource" dest="${dist.home}/war/WEB-INF/config/resource" includes="*.properties" />
+        <copy todir="${test.home}/">
+            <fileset dir="${dist.home}/war/WEB-INF/config/resource" includes="*.properties" />
+        </copy>
+    </target>
+
+    <!-- Compile Java classes as necessary -->
+    <target name="compile" depends="prepare, resources-native" description="Compile Java sources">
+        <mkdir dir="${dist.home}/war/WEB-INF/classes" />
+        <javac srcdir="${src.home}" destdir="${dist.home}/war/WEB-INF/classes" debug="${compile.debug}" deprecation="${compile.deprecation}" source="${compile.version}" target="${compile.version}" optimize="${compile.optimize}">
+            <compilerarg line="-encoding UTF-8 " />
+            <classpath refid="compile.classpath" />
+        </javac>
+
+        <!-- Copy config files which need be put under class path -->
+        <copy tofile="${dist.home}/war/WEB-INF/classes/struts.xml" file="${config.home}/action/struts.xml" />
+        <copy todir="${dist.home}/war/WEB-INF/classes">
+            <fileset dir="${src.home}" includes="*.properties" />
+            <fileset dir="${src.home}" includes="*.xml" />
+            <fileset dir="${config.home}/action" includes="*.xml" />
+        </copy>
+
+        <!-- Copy email parse config files under mime package -->
+        <copy todir="${dist.home}/war/WEB-INF/classes/com/augmentum/hrrs/mime">
+            <fileset dir="${src.home}/com/augmentum/hrrs/mime">
+                <include name="*.xml" />
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="ear" depends="compile" description="Create binary distribution for application">
+        <jar jarfile="${dist.home}/${app.name}.war" basedir="${dist.home}/war" />
+        <ear destfile="${dist.home}/${app.name}.ear" appxml="${config.home}/META-INF/application.xml">
+            <fileset dir="${dist.home}">
+                <include name="${app.name}.war" />
+            </fileset>
+        </ear>
+
+        <delete dir="${dist.home}/war" />
+        <delete file="${dist.home}/${app.name}.war" />
+    </target>
+
+    <target name="package" depends="ear" description="Package and deploy application to servlet container">
+        <!-- Copy log4j config and application ear -->
+        <!-- <copy file="${config.home}/META-INF/log4j.xml" todir="${jboss.home}/conf" overwrite="true" /> -->
+
+        <!-- Copy data source config files -->
+        <copy file="${config.home}/META-INF/hrrs-ds.xml" todir="${jboss.home}/deploy" overwrite="true" />
+
+        <!-- Copy JMS config files, the jms-ds.xml is used by HRMS -->
+        <copy file="${config.home}/META-INF/jbossmq-destinations-service.xml" todir="${jboss.home}/deploy/jms" overwrite="true" />
+        <copy file="${config.home}/META-INF/jms-ds.xml" todir="${jboss.home}/deploy/jms" overwrite="true" />
+
+        <copy file="${dist.home}/${app.name}.ear" todir="${jboss.home}/deploy" overwrite="true" />
+        <delete file="${dist.home}/${app.name}.ear" />
+
+        <condition property="schemaUpdate">
+            <available file="${basedir}/schema/update_${app.version}.sql" type="file" />
+        </condition>
+        <antcall target="copy-schema" />
+
+        <copy todir="${dist.home}/config">
+            <fileset dir="${config.home}">
+                <include name="plug/**" />
+                <include name="templates/**" />
+                <include name="email/**" />
+                <include name="wordParser/**" />
+                <exclude name="hrrs.properties" />
+            </fileset>
+        	<fileset file="${hrrsProperty}">
+        	</fileset>
+        </copy>
+
+        <!-- <copy file="${basedir}/Deploy_Package.bat" todir="${dist.home}" overwrite="true" /> -->
+        <zip destfile="${hrrs.path}/${app.name}_Package_${app.version}.zip" basedir="${dist.home}" />
+    </target>
+
+    <target name="copy-schema" if="schemaUpdate" description="Copy database update into package.">
+        <copy file="${basedir}/schema/update_${app.version}.sql" todir="${dist.home}" overwrite="true" />
+    </target>
+</project>

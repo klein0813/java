@@ -1,4 +1,4 @@
-package com.augmentum.hrrs.util;
+package XXX.util;
 
 import java.util.Map;
 

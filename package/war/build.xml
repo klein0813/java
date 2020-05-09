@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE SYSTEM>
+<project name="Rotation-local" basedir="." default="deploy">
+    <description> Rotation </description>
+    <property file="build.properties"></property>
+    <path id="compile">
+        <pathelement path="${build.src}"/>
+        <fileset dir="${webinf.lib}">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${tomcat.home}/lib">
+            <include name="jsp-api.jar"/>
+            <include name="servlet-api.jar"/>
+        </fileset>
+    </path>
+
+    <!-- clean -->
+    <target name="clean"  description="Clean all Folder for build">
+        <delete dir="${build.webContent}"></delete>
+        <delete dir="${build.classes}"></delete>
+        <delete dir="${webapp.deployPath}/${project.distname}"></delete>
+        <delete dir="${webapp.deployPath}/${project.distname}.war"></delete>
+    </target>
+
+    <!-- Copy WebContent to build.webContent  -->
+    <target name="copyWebContentToBuild" depends="clean" description="创建打包需要的路径，拷贝源文件到打包路径下">  
+            <mkdir dir="${build.webContent}"/>  
+            <copy todir="${build.webContent}">  
+                <fileset dir="${dir.webContent}"/>  
+            </copy>
+    </target>  
+
+    <!-- init -->
+    <target name="init" description="mkdir directory" depends="copyWebContentToBuild">
+        <mkdir dir="${build.classes}"/>
+        <copy todir="${webinf.lib}"  overwrite="true" file="${testiap}"></copy>
+    </target>
+
+    <!-- compile -->
+    <target name="compile" description="compile classes" depends="init">
+        <copy todir="${build.classes}" preservelastmodified="true">
+            <fileset dir="${dir.src}">
+                <include name="**/*.properties"/>
+                <include name="*.properties"/>
+                <include name="**/*.xml"/>
+                <include name="*.xml"/>
+                <include name="**/*.bpmn"/>
+                <include name="*.bpmn"/>
+            </fileset>
+            <fileset dir="${dir.conf}">
+                   <include name="**/*.properties"/>
+                   <include name="*.properties"/>
+                   <include name="**/*.xml"/>
+                   <include name="*.xml"/>
+                   <include name="**/*.xls"/>
+                   <include name="*.xls"/>
+            </fileset>
+            <fileset dir="${dir.local.conf}">
+                   <include name="**/*.properties"/>
+                   <include name="*.properties"/>
+               <!--
+                   <include name="**/*.xml"/>
+                   <include name="*.xml"/>
+                -->
+            </fileset>
+        </copy>
+        <javac srcdir="${dir.src}" destdir="${build.classes}" source="1.7" encoding="utf-8" debug="true" >
+            <classpath refid="compile"></classpath>
+        </javac>
+    </target>
+
+    <!-- 给页面文件中的css和js引用增加版本号 -->  
+    <target name="addPageVersion" depends="compile"> 
+        <taskdef name="addVersion" classname="com.augmentum.rotation.util.AddJsAndCssVersion"  classpath="${build.classes}"/>
+        <addVersion path="${build.webContent}" />  
+    </target>  
+
+    <!-- unpack to war  -->
+    <target name="dist" description="Unpack the file to war file">
+       <war basedir="${build.webContent}" warfile="${webapp.deployPath}/${project.distname}.war"
+                                         webxml="${build.webContent}/WEB-INF/web.xml">
+       </war>
+    </target>
+
+    <target name="deploy" description="clean the project" depends="compile,addPageVersion,dist">
+    </target>
+</project>

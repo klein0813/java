@@ -61,12 +61,12 @@ public class CallSofficeSemaphore {
         </property>
     </bean>
 
-    <bean id="resumeConvertInfoMessageSender" class="com.augmentum.hrrs.mdb.ResumeConvertInfoMessageSender">
+    <bean id="resumeConvertInfoMessageSender" class="XXX.mdb.ResumeConvertInfoMessageSender">
         <property name="template" ref="jmsTemplate" />
         <property name="destination" ref="resumeDestination" />
     </bean>
 
-    <bean id="resumeConvertInfoMessageListener" class="com.augmentum.hrrs.mdb.ResumeConvertInfoMessageListener" />
+    <bean id="resumeConvertInfoMessageListener" class="XXX.mdb.ResumeConvertInfoMessageListener" />
 
     <bean id="resumeJMSContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
         <property name="connectionFactory" ref="jmsConnectionFactory" />
@@ -133,14 +133,14 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.augmentum.hrrs.core.Exp;
-import com.augmentum.hrrs.entity.po.candidate.Candidate;
-import com.augmentum.hrrs.entity.po.candidate.Resume;
-import com.augmentum.hrrs.entity.po.candidate.ResumeContent;
-import com.augmentum.hrrs.parser.fileparser.async.CallSofficeSemaphore;
-import com.augmentum.hrrs.service.CandidateService;
-import com.augmentum.hrrs.service.ResumeService;
-import com.augmentum.hrrs.util.StringUtil;
+import XXX.core.Exp;
+import XXX.entity.po.candidate.Candidate;
+import XXX.entity.po.candidate.Resume;
+import XXX.entity.po.candidate.ResumeContent;
+import XXX.parser.fileparser.async.CallSofficeSemaphore;
+import XXX.service.CandidateService;
+import XXX.service.ResumeService;
+import XXX.util.StringUtil;
 
 @Transactional
 public class ResumeConvertInfoMessageListener implements MessageListener {

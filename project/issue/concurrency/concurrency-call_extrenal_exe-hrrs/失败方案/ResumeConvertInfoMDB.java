@@ -1,4 +1,4 @@
-package com.augmentum.hrrs.mdb;
+package XXX.mdb;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +13,14 @@ import javax.jms.MessageListener;
 
 import org.apache.log4j.Logger;
 
-import com.augmentum.hrrs.bean.CommonBean;
-import com.augmentum.hrrs.bean.util.BeanUtil;
-import com.augmentum.hrrs.entity.po.candidate.Candidate;
-import com.augmentum.hrrs.entity.po.candidate.Resume;
-import com.augmentum.hrrs.entity.po.candidate.ResumeContent;
-import com.augmentum.hrrs.parser.fileparser.async.CallSofficeSemaphore;
-import com.augmentum.hrrs.util.MessageUtils;
-import com.augmentum.hrrs.util.StringUtil;
+import XXX.bean.CommonBean;
+import XXX.bean.util.BeanUtil;
+import XXX.entity.po.candidate.Candidate;
+import XXX.entity.po.candidate.Resume;
+import XXX.entity.po.candidate.ResumeContent;
+import XXX.parser.fileparser.async.CallSofficeSemaphore;
+import XXX.util.MessageUtils;
+import XXX.util.StringUtil;
 
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
